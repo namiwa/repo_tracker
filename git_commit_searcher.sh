@@ -3,10 +3,6 @@
 # sets it to fail if there are any weirdness like unbound variables
 set -euo pipefail
 
-REGEX=$1
-PREV_BRANCH=$2
-CURR_BRANCH=$3
-
 main() {
     echo "Processing regex: $REGEX, checking on prev_branch: $PREV_BRANCH -- curr_branch: $CURR_BRANCH"
 }
@@ -58,3 +54,4 @@ do
 done    
 
 echo "Processing file: $FILE, source: $SOURCE, target: $TARGET"
+# TODO reject if not populated
