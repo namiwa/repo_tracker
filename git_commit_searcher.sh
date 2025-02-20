@@ -1,5 +1,8 @@
 #!/bin/env bash
 
+# sets it to fail if there are any weirdness like unbound variables
+set -euo pipefail
+
 REGEX=$1
 PREV_BRANCH=$2
 CURR_BRANCH=$3
@@ -20,7 +23,12 @@ version() {
     echo "version 1.0 of git-commit-searcher"
 }
 
-optspec="hvf:"
+FILE=""
+SOURCE=""
+TARGET=""
+
+# logic behind https://stackoverflow.com/a/18414091 the colons for optspecs
+optspec="f:s:t::hv"
 while getopts "$optspec" optchar
 do
     case "${optchar}" in
@@ -33,8 +41,13 @@ do
             exit 0
             ;;
         f)
-            file=${OPTARG}
-            exit 0
+            FILE=${OPTARG}
+            ;;
+        s)
+            SOURCE=${OPTARG}
+            ;;
+        t)
+            TARGET=${OPTARG}
             ;;
         \?)
             echo "Missing args please pass file name"
@@ -43,3 +56,5 @@ do
             ;;
     esac
 done    
+
+echo "Processing file: $FILE, source: $SOURCE, target: $TARGET"
