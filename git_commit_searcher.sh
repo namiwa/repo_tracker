@@ -1,5 +1,8 @@
 #!/bin/env bash
 
+# unofficial bash strict mode: https://gist.github.com/robin-a-meade/58d60124b88b60816e8349d1e3938615
+set -euo pipefail
+
 # sets it to fail if there are any weirdness like unbound variables
 
 main() {
@@ -20,35 +23,39 @@ version_msg() {
     echo "version 1.0 of git-commit-searcher"
 }
 
-# logic behind https://stackoverflow.com/a/18414091 the colons for optspecs
+DEFAULTMISSINGVAL="default-missing-val"
+
+# https://stackoverflow.com/a/2013573 -- default values
+CHECKPARAM="${1:-$DEFAULTMISSINGVAL}"
+
 # https://stackoverflow.com/q/18414054 using ase bse line for multi flag 
-  if [[ "$1" =~ ^((-{1,2})([Hh]$|[Hh][Ee][Ll][Pp])|)$ ]]; then
-    echo "Please input flags"
-    help_msg; exit 1
-  else
-    while [[ $# -gt 0 ]]; do
-      opt="$1"
-      shift;
-      current_arg="$1"
-      if [[ "$current_arg" =~ ^-{1,2}.* ]]; then
-        echo "WARNING: You may have left an argument blank. Double check your command." 
-      fi
-      case "$opt" in
-        "-s"|"--source"        ) SOURCE="$1"; shift;;
-        "-t"|"--target"        ) TARGET="$1"; shift;;
-        "-f"|"--file"          ) FILE="$1"; shift;;
-        "-h"|"--help"          ) help_msg; exit 0;;
-        "-v"|"--version"       ) version_msg; exit 0;;
-        *                      ) echo "ERROR: Invalid option: \""$opt"\"" >&2
-                                 exit 1;;
-      esac
-    done
-  fi
+# logic behind https://stackoverflow.com/a/18414091 the colons for optspecs
+if [[ $CHECKPARAM == $DEFAULTMISSINGVAL  ]]; then
+  echo "Missing required flags"
+  help_msg; exit 1
+else
+  while [[ $# -gt 0 ]]; do
+    opt="$1"
+    shift;
+    current_arg="${1:-$DEFAULTMISSINGVAL}"
+    case "$opt" in
+      "-s"|"--source"        ) SOURCE="$current_arg"; shift;;
+      "-t"|"--target"        ) TARGET="$current_arg"; shift;;
+      "-f"|"--file"          ) FILE="$current_arg"; shift;;
+      "-h"|"--help"          ) help_msg; exit 0;;
+      "-v"|"--version"       ) version_msg; exit 0;;
+      *                      ) echo "ERROR: Invalid option: \""$opt"\"" >&2
+                                exit 1;;
+    esac
+    if [[ "$current_arg" == $DEFAULTMISSINGVAL ]]; then
+      echo "WARNING: You may have left an argument blank. Double check your command." 
+    fi
+  done
+fi
 
   if [[ "$FILE" == "" || "$SOURCE" == "" || "$TARGET" == "" ]]; then
     echo "ERROR: Options -f, -s and -t require arguments." >&2
     exit 1
   fi
 
-# TODO reject if not populated
 main $FILE $SOURCE $TARGET
