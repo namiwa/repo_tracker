@@ -4,23 +4,45 @@
 set -euo pipefail
 
 # sets it to fail if there are any weirdness like unbound variables
+check_deps() {
+  deps=("git" "sort" "uniq" "sed" "grep" "awk" "ls")
+  for dep in ${deps[@]}; do
+    p="$(command -v $dep)"
+    echo "checking path of dep: $dep -- $p"
+    if ! [ -x "$p" ]; then
+      echo "Error: $dep is not installed." >&2
+      exit 1
+    fi
+  done
+  echo "all deps are present"
+}
+
+check_file_exists() {
+  # spaces and curly braces are important in bash
+  if ! [ -f "$1" ]; then
+    echo "invalid file path: $1"
+    exit 1
+  fi
+}
 
 main() {
-    echo "Processing targetRepos: $1, checking on prev_branch: $2 --> curr_branch: $3"
+  check_deps
+  echo "Processing targetReposFile: $1, checking on prev_branch: $2 --> curr_branch: $3"
+  check_file_exists $1
 }
 
 # references getopts from https://stackoverflow.com/a/15408583
 help_msg() {
-    echo "Usage: $0 [-h] [-f FILE]"
-    echo " -h Help. Display this message and quit."
-    echo " -v Version. Print version number and quit."
-    echo " -f Specify git paths file FILE"
-    echo " -s Specify git source branch (oldest branch)"
-    echo " -t Specify git target branch (most recent branch)"
+  echo "Usage: $0 [-h] [-f FILE]"
+  echo " -h Help. Display this message and quit."
+  echo " -v Version. Print version number and quit."
+  echo " -f Specify git paths file FILE"
+  echo " -s Specify git source branch (oldest branch)"
+  echo " -t Specify git target branch (most recent branch)"
 }
 
 version_msg() {
-    echo "version 1.0 of git-commit-searcher"
+  echo "version 1.0 of git-commit-searcher"
 }
 
 DEFAULTMISSINGVAL="default-missing-val"
