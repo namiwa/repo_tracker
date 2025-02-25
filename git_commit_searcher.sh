@@ -27,8 +27,24 @@ check_file_exists() {
 
 main() {
   check_deps
-  echo "Processing targetReposFile: $1, checking on prev_branch: $2 --> curr_branch: $3"
+  echo "Processing targetReposFile: $1, checking on prev_branch: $2 --> curr_branch: $3, regex: $4"
   check_file_exists $1
+  echo "" > "./.gitignore"
+  # looping from https://stackoverflow.com/a/46225812
+  while IFS= read -r repoUrl || [[ "$repoUrl" ]]; do
+    echo "processing repo: $repoUrl"
+    dirName=$(basename -- "$repoUrl")
+    dirName="${dirName%.*}"
+    echo "$dirName"
+    if cd "./$dirName"; then
+      git pull
+    else
+      git clone $repoUrl;
+    fi
+    # TODO: Continue with git log parsing in the repo itself
+    cd ..
+    echo "$dirName" >> "./.gitignore"
+  done < $1
 }
 
 # references getopts from https://stackoverflow.com/a/15408583
@@ -39,6 +55,7 @@ help_msg() {
   echo " -f Specify git paths file FILE"
   echo " -s Specify git source branch (oldest branch)"
   echo " -t Specify git target branch (most recent branch)"
+  echo " -r Specify regex to search for"
 }
 
 version_msg() {
@@ -64,6 +81,7 @@ else
       "-s"|"--source"        ) SOURCE="$current_arg"; shift;;
       "-t"|"--target"        ) TARGET="$current_arg"; shift;;
       "-f"|"--file"          ) FILE="$current_arg"; shift;;
+      "-r"|"--regex"         ) REGEX="$current_arg"; shift;;
       "-h"|"--help"          ) help_msg; exit 0;;
       "-v"|"--version"       ) version_msg; exit 0;;
       *                      ) echo "ERROR: Invalid option: \""$opt"\"" >&2
@@ -80,4 +98,4 @@ fi
     exit 1
   fi
 
-main $FILE $SOURCE $TARGET
+main $FILE $SOURCE $TARGET $REGEX
