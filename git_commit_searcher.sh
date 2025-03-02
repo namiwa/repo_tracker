@@ -29,7 +29,8 @@ main() {
   check_deps
   echo "Processing targetReposFile: $1, checking on prev_branch: $2 --> curr_branch: $3, regex: $4"
   check_file_exists $1
-  echo "" > "./.gitignore"
+  rm ./.gitignore
+  touch ./.gitignore
   # looping from https://stackoverflow.com/a/46225812
   while IFS= read -r repoUrl || [[ "$repoUrl" ]]; do
     echo "processing repo: $repoUrl"
