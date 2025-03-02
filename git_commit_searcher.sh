@@ -37,11 +37,25 @@ main() {
     dirName="${dirName%.*}"
     echo "$dirName"
     if cd "./$dirName"; then
-      git pull
+      echo "skipping pull as repo is present"
     else
       git clone $repoUrl;
     fi
-    # TODO: Continue with git log parsing in the repo itself
+    # Continue with git log parsing in the repo itself
+    if ! git fetch origin $2; then
+      echo "skipping $repoUrl since branch $2 not found"
+      cd ..
+      echo "$dirName" >> "./.gitignore"
+      continue
+    fi
+    if ! git fetch origin $3; then
+      echo "skipping $repoUrl since branch $3 not found"
+      cd ..
+      echo "$dirName" >> "./.gitignore"
+      continue
+    fi
+    LOG_DATA="$(git log --oneline origin/$2..origin/$3 | grep $4)"
+    echo "$LOG_DATA"
     cd ..
     echo "$dirName" >> "./.gitignore"
   done < $1
@@ -93,7 +107,7 @@ else
   done
 fi
 
-  if [[ "$FILE" == "" || "$SOURCE" == "" || "$TARGET" == "" ]]; then
+  if [[ "$FILE" == "" || "$SOURCE" == "" || "$TARGET" == "" || "$REGEX" == "" ]]; then
     echo "ERROR: Options -f, -s and -t require arguments." >&2
     exit 1
   fi
