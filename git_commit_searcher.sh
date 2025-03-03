@@ -31,7 +31,8 @@ main() {
   check_file_exists $1
   rm ./.gitignore
   touch ./.gitignore
-  # looping from https://stackoverflow.com/a/46225812
+  # looping from https://stackoverflow.com/a/4622581
+  # create a data folder is ignore there
   while IFS= read -r repoUrl || [[ "$repoUrl" ]]; do
     echo "processing repo: $repoUrl"
     dirName=$(basename -- "$repoUrl")
@@ -55,7 +56,8 @@ main() {
       echo "$dirName" >> "./.gitignore"
       continue
     fi
-    LOG_DATA="$(git log --oneline origin/$2..origin/$3 | grep $4)"
+    LOG_DATA="$(git log --oneline --merges --first-parent origin/$2..origin/$3 | grep -e $4)"
+    #TODO: make tabular with commit, desc, matched string and repoUrl
     echo "$LOG_DATA"
     cd ..
     echo "$dirName" >> "./.gitignore"
