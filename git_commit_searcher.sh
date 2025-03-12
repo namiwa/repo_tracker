@@ -25,12 +25,23 @@ check_file_exists() {
   fi
 }
 
+clean_up_output_file() {
+  if [ -f "./output.txt" ]; then
+    echo "removing previous output file"
+    rm ./output.txt
+    return
+  fi
+  echo "skipping output file deletion as it is not present"
+  echo "commit,message,pattern,repo" > ./output.txt
+}
+
 main() {
   check_deps
+  clean_up_output_file
   echo "Processing targetReposFile: $1, checking on prev_branch: $2 --> curr_branch: $3, regex: $4"
   check_file_exists $1
   rm ./.gitignore
-  touch ./.gitignore
+  echo output.txt > ./.gitignore
   # looping from https://stackoverflow.com/a/4622581
   # create a data folder is ignore there
   while IFS= read -r repoUrl || [[ "$repoUrl" ]]; do
@@ -58,10 +69,14 @@ main() {
     fi
     LOG_DATA="$(git log --oneline --merges --first-parent origin/$2..origin/$3 | grep -e $4)"
     #TODO: make tabular with commit, desc, matched string and repoUrl
-    echo "$LOG_DATA"
+    FORMATTED_DATA="$(echo "$LOG_DATA" | sed $'s/ \{1,\}/\,/')"
+    FORMATTED_DATA="$(echo "$FORMATTED_DATA" | sed "s/$/,$4,$dirName/")"
     cd ..
     echo "$dirName" >> "./.gitignore"
+    echo "$FORMATTED_DATA" >> "./output.txt"
   done < $1
+  echo "processed all repos from $1, commit message searching completed successfully"
+  exit 0
 }
 
 # references getopts from https://stackoverflow.com/a/15408583
